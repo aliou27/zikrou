@@ -56,7 +56,7 @@ A single **Spring Boot 4** application exposing a REST API. It handles:
 zikrou.com          → Marketing site (external)
 api.zikrou.com      → REST API (Spring Boot on Hetzner)
 app.zikrou.com      → Flutter Web PWA (static files on Hetzner)
-cdn.zikrou.com      → Audio + images (Cloudflare R2)
+media.zikrou.com      → Audio + images (Cloudflare R2)
 ```
 
 ---
@@ -89,7 +89,7 @@ Spring Boot API
 ```
 Flutter App
     │
-    │ GET cdn.zikrou.com/zikrs/5/uuid.mp3
+    │ GET media.zikrou.com/zikrs/5/uuid.mp3
     ▼
 Cloudflare CDN
     │
