@@ -12,7 +12,7 @@ Islamic audio streaming application for the Taalibé community of Cheikh Ibrahim
 
 ## Overview
 
-Zikrou is a full-stack mobile and web application that centralizes Islamic audio content — Zikrs and Conversations from communities across West Africa and beyond (Senegal, Mauritania, Nigeria, Guinea).
+Zikrou is a full-stack mobile and web application that centralizes Islamic audio content: Zikrs and Conversations from communities across West Africa and beyond (Senegal, Mauritania, Nigeria, Guinea).
 
 The application is available on **Android**, **iOS** , and as a **Progressive Web App** at [app.zikrou.com](https://app.zikrou.com)
 
@@ -249,7 +249,7 @@ https://drive.google.com/file/d/1ZRBj-HYLATBcI9bIV1dwsAmtU9zUnlv3/view?usp=drive
 
 The backend source code is maintained in a private repository.
 
-This repository contains technical documentation only — no source code, credentials, or proprietary implementation details are published here.
+This repository contains technical documentation only. No source code, credentials, or proprietary implementation details are published here.
 
 ---
 
