@@ -137,4 +137,4 @@ Categories of variables:
 
 ## Backup
 
-[PostgreSQL backup strategy — to be documented]
+Not yet implemented
