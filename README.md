@@ -222,7 +222,10 @@ Key decisions:
 
 | Home Feed | Audio Player | Search |
 |---|---|---|
-| *[screenshot]* | *[screenshot]* | *[screenshot]* |
+| <img width="642" height="1389" alt="Screenshot 2026-08-27 at 11 59 09 PM" src="https://github.com/user-attachments/assets/1fae8d2e-1761-494d-92a9-9613a64ad551" />
+| <img width="642" height="1389" alt="Screenshot 2026-08-27 at 11 59 52 PM" src="https://github.com/user-attachments/assets/08858c04-782d-45b7-971d-bb1acda8c4b0" />
+ | <img width="642" height="1389" alt="Screenshot 2026-08-28 at 12 00 30 AM" src="https://github.com/user-attachments/assets/277cb118-becb-44c7-84de-1f8b9dfa7c6d" />
+ |
 
 ---
 
