@@ -240,7 +240,7 @@ https://drive.google.com/file/d/1ZRBj-HYLATBcI9bIV1dwsAmtU9zUnlv3/view?usp=drive
 | Platform | Status |
 |---|---|
 | Android (Google Play) | Closed testing |
-| iOS (TestFlight) | Under review |
+| iOS (TestFlight) | Available |
 | Web PWA | Live at [app.zikrou.com](https://app.zikrou.com) |
 
 ---
