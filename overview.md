@@ -1,123 +1,164 @@
-# Architecture Overview
+# Backend Overview
 
-## System Design
+## Stack
 
-Zikrou follows a client-server architecture with a centralized REST API backend, mobile and web clients, and a CDN layer for media delivery.
+| Component | Technology |
+|---|---|
+| Framework | Spring Boot 4 |
+| Language | Java |
+| Build tool | Gradle |
+| ORM | Spring Data JPA + Hibernate |
+| Migrations | Flyway |
+| API docs | SpringDoc OpenAPI (Swagger UI) |
+| Email | Spring Boot Starter Mail |
+| Storage client | AWS SDK v2 (Cloudflare R2 compatible) |
+| Security | Spring Security 6 |
 
 ---
 
-## Components
+## Package Structure
 
-### Clients
+The backend is organized by feature domain:
 
-| Client | Technology | Platform |
+```
+com.zikrFy.api/
+├── Album/
+├── AudioFile/
+├── Community/        # Comments, Ratings, Reports, Suggestions
+├── Country/
+├── Daira/
+├── Domain/           # Base entities, enums
+├── DTOs/             # Request/Response objects
+├── Exception/        # Global error handling
+├── Genre/
+├── Home/
+├── Notification/
+├── PlayList/
+├── Refresh_token/
+├── Search/
+├── Security/         # JWT, filters, config
+├── Subscription/
+├── Tag/
+├── User/             # Auth, profile, settings
+├── Zakir/
+└── Zikr/
+```
+
+---
+
+## API Design
+
+The API follows REST conventions:
+
+- Base path: `/api/v1/`
+- JSON request and response bodies
+- Standard HTTP status codes
+- Global error handling via `@RestControllerAdvice`
+- Pagination on list endpoints (`page`, `size` query parameters)
+- Filtering and sorting on Zikr endpoints
+
+### Response format
+
+All responses are wrapped in a standard envelope:
+
+```json
+{
+  "success": true,
+  "message": "OK",
+  "data": { ... }
+}
+```
+
+Error responses:
+
+```json
+{
+  "success": false,
+  "message": "Zikr not found with id: 42",
+  "data": null
+}
+```
+
+---
+
+## Key Design Decisions
+
+### Pagination
+
+All list endpoints that can return large datasets use Spring Data `Pageable`. The response includes:
+
+```json
+{
+  "content": [...],
+  "page": 0,
+  "size": 20,
+  "totalElements": 847,
+  "totalPages": 43,
+  "last": false
+}
+```
+
+### Filtering
+
+The Zikr endpoint supports dynamic filtering via JPA `Specification`:
+
+```
+GET /api/v1/zikr?genreId=1&isPremium=false&sortBy=playCount&sortDir=desc&page=0&size=20
+```
+
+### Full-text search
+
+Search uses PostgreSQL `tsvector` with a GIN index, with `plainto_tsquery` for query parsing. Title matches are weighted higher than description matches (weight A vs B).
+
+### Error handling
+
+A global `@RestControllerAdvice` catches:
+- `ResourceNotFoundException` → 404
+- `DataIntegrityViolationException` → 400 (with human-readable constraint messages)
+- `MethodArgumentNotValidException` → 400 (validation errors per field)
+- Generic `Exception` → 500
+
+### Stats atomicity
+
+Play counts, like counts, and download counts use atomic `@Modifying` JPQL queries to prevent lost updates under concurrent load:
+
+```sql
+UPDATE ZikrStats SET total_plays = total_plays + 1 WHERE zikr_id = :id
+```
+
+---
+
+### Application Cache
+
+Frequently accessed, slowly changing endpoints are cached in memory using **Caffeine** with per-cache TTLs:
+
+| Cache | TTL | Reason |
 |---|---|---|
-| Mobile app | Flutter | Android + iOS |
-| Progressive Web App | Flutter Web | Browser |
-| Admin panel | HTML/CSS/JS | Browser |
+| `home:trending` | 5 min | Play counts update constantly |
+| `home:newReleases` | 15 min | Changes when admin publishes |
+| `home:collections` | 30 min | Changes when admin curates |
+| `home:topZakirs` | 15 min | Follower counts, not real-time |
 
-### Backend
-
-A single **Spring Boot 4** application exposing a REST API. It handles:
-- Authentication and authorization
-- Business logic
-- Database access via Spring Data JPA
-- Email sending via JavaMailSender
-
-### Database
-
-**PostgreSQL 17** running in a Docker container on the same VPS as the API. It stores:
-- Users, roles, and refresh tokens
-- Content: Zakirs, Dairas, Albums, Zikrs, AudioFiles
-- User data: favorites, history, playlists, follows
-- Community: comments, ratings, reports
-- Configuration: AppConfig, UserSettings
-
-### Object Storage
-
-**Cloudflare R2** stores all audio files and images. Files are uploaded directly from the client using presigned URLs, bypassing the API server. The API only stores the file URL in the database.
-
-### CDN
-
-**Cloudflare CDN** serves all media files from R2. With proper `Cache-Control` headers, ~90% of media requests are served from Cloudflare edge nodes without touching the origin server.
-
-### Reverse Proxy
-
-**Caddy** runs as a Docker container on the VPS. It:
-- Terminates HTTPS (automatic TLS via Let's Encrypt)
-- Routes `api.zikrou.com` to the Spring Boot container
-- Serves static files for `app.zikrou.com` (Flutter Web PWA)
+Each cache has its own TTL instead of a single shared spec, because different data changes at different rates. Trending content needs short TTLs. Curated collections need longer ones.
 
 ---
 
-## Domain Structure
 
-```
-zikrou.com          → Marketing site (external)
-api.zikrou.com      → REST API (Spring Boot on Hetzner)
-app.zikrou.com      → Flutter Web PWA (static files on Hetzner)
-cdn.zikrou.com      → Audio + images (Cloudflare R2)
-```
 
----
+Transactional emails are sent via **Mailtrap SMTP** using Spring's `JavaMailSender`:
 
-## Request Flow
-
-### API Request (authenticated)
-
-```
-Flutter App
-    │
-    │ HTTPS POST api.zikrou.com/api/v1/auth/login
-    ▼
-Cloudflare DNS resolves → VPS IP
-    │
-    ▼
-Caddy (port 443)
-    │ reverse_proxy localhost:8080
-    ▼
-Spring Boot API
-    │
-    ├── JwtFilter validates token
-    ├── SecurityConfig checks role
-    ├── Controller → Service → Repository
-    └── Response JSON
-```
-
-### Media Request (audio stream)
-
-```
-Flutter App
-    │
-    │ GET cdn.zikrou.com/zikrs/5/uuid.mp3
-    ▼
-Cloudflare CDN
-    │
-    ├── Cache HIT  → served from edge (0ms latency)
-    └── Cache MISS → fetched from R2, cached
-```
+- Email verification on registration
+- Password reset with a 6-digit `SecureRandom` code (15-minute expiry)
+- Welcome email
 
 ---
 
-## Infrastructure
+## Configuration
 
-| Component | Provider | Specs |
-|---|---|---|
-| VPS | Hetzner | CX33, 4 vCPU, 8 GB RAM, 80 GB SSD |
-| Object storage | Cloudflare R2 | Pay-per-use, zero egress |
-| CDN + DNS | Cloudflare | Free plan |
-| Email | Mailtrap | Transactional SMTP |
-| Domain | Cloudflare | zikrou.com |
+The application uses environment variables for all sensitive configuration. No secrets are hardcoded.
 
----
-
-## Docker Compose Structure
-
-```yaml
-services:
-  caddy:     # Reverse proxy + HTTPS
-  api:       # Spring Boot REST API
-  postgres:  # PostgreSQL 17
-```
-
-All three containers run on the same VPS and communicate via Docker internal network. Only Caddy exposes ports 80 and 443 to the internet.
+Key configuration namespaces:
+- `spring.datasource.*` — database connection
+- `spring.mail.*` — SMTP configuration
+- `spring.jwt.*` — JWT secret and expiration
+- `r2.*` — Cloudflare R2 credentials
