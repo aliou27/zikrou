@@ -163,7 +163,7 @@ See [docs/cicd/github-actions.md](docs/cicd/github-actions.md) for details.
 
 ## My Role
 
-Zikrou is a solo project. I designed, built, deployed, and published every part of it:
+Zikrou is a solo project. I designed, built, and published every part of it:
 
 - **Product design**: defined the problem, the target users, and the feature set
 - **Backend**: designed and implemented the entire REST API with Spring Boot
@@ -177,6 +177,8 @@ Zikrou is a solo project. I designed, built, deployed, and published every part 
 - **Deployment**: wrote and maintains the deploy pipeline
 - **Testing**: manual and Postman collection testing across all endpoints
 - **Publication**: submitted and published on Google Play (closed testing) and Apple TestFlight
+
+  As for the Deployment https://github.com/jeanthiao helped me to set up the vps and automate it with CI/CD, Github Actions and SonaCloud
 
 ---
 
