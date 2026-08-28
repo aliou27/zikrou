@@ -167,3 +167,33 @@ See [authentication.md](../security/authentication.md) for the full explanation.
 - No additional infrastructure (Redis) needed
 
 **Trade-offs**: Cannot use JPA dirty checking for these fields; must use explicit queries.
+
+
+Why Caffeine over Redis?
+
+Problem: Reduce repeated database queries for frequently accessed, slowly changing data: home feed sections, top Zakirs, new releases.
+
+Options considered: No cache, Redis, Caffeine (in-process)
+
+Decision: Caffeine with per-cache TTLs
+
+Reasons:
+
+Single-instance VPS deployment, no need for a distributed cache
+In-process cache means zero network round-trips and no serialization overhead
+Redis requires a separate server, adds operational complexity, and network latency
+Caffeine is sufficient when all API requests are handled by one process
+
+Configuration — per-cache TTLs instead of a single shared spec:
+
+home:trending         5 min   (play counts update constantly)
+home:trendingAll      5 min
+home:newReleases      15 min  (changes when admin publishes)
+home:newReleasesAll   15 min
+home:collections      30 min  (changes when admin curates)
+home:topZakirs        15 min  (follower counts, not real-time)
+home:topConferenciers 15 min
+
+A single spring.cache.caffeine.spec would apply the same TTL to every cache. Trending data needs a short TTL because it reflects real-time listening. Collections only change when an admin manually curates them — recomputing them every 5 minutes is wasted work. Matching the TTL to the actual rate of change reduces unnecessary database load without serving stale data where freshness matters.
+
+Trade-offs: Cache is not shared across processes. If the API ever scales to multiple instances, Caffeine would need to be replaced with Redis to avoid cache inconsistency between nodes.
