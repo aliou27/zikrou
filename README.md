@@ -174,9 +174,8 @@ Zikrou is a solo project. I designed, built, and published every part of it:
 - **Infrastructure**: provisioned and configured the Hetzner VPS, Docker, Caddy
 - **Storage**: integrated Cloudflare R2 for audio and image files
 - **CDN**: configured Cloudflare CDN to serve media files
-- **Deployment**: wrote and maintains the deploy pipeline
 - **Testing**: manual and Postman collection testing across all endpoints
-- **Publication**: submitted and published on Google Play (closed testing) and Apple TestFlight
+- **Publication**: submitted and published on Google Play (closed testing) and Apple 
 
   As for the Deployment https://github.com/jeanthiao helped me to set up the vps and automate it with CI/CD, Github Actions and SonaCloud
 
