@@ -210,7 +210,7 @@ PUT    /playlists/{id}/reorder      Reorder tracks
 
 ---
 
-## Downloads (authenticated — premium)
+## Downloads (authenticated)
 
 ```
 POST   /downloads/{zikrId}          Download a Zikr
@@ -232,7 +232,7 @@ Search types: `ALL`, `ZIKR`, `ZAKIR`, `DAIRA`
 
 ---
 
-## Home (authenticated)
+## Home (public)
 
 ```
 GET  /home                          Home feed
