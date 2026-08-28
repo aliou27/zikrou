@@ -169,8 +169,7 @@ See [authentication.md](../security/authentication.md) for the full explanation.
 **Trade-offs**: Cannot use JPA dirty checking for these fields; must use explicit queries.
 
 
-Why Caffeine over Redis?
-
+**Why Caffeine over Redis?**
 Problem: Reduce repeated database queries for frequently accessed, slowly changing data: home feed sections, top Zakirs, new releases.
 
 Options considered: No cache, Redis, Caffeine (in-process)
